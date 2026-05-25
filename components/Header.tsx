@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/lib/cartContext';
 import { useAuth } from '@/lib/authContext';
 import { ShoppingCart, User, Menu, X, LogOut, LayoutDashboard, Package } from 'lucide-react';
@@ -22,14 +23,15 @@ export default function Header() {
       {/* Main nav */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-9 h-9 bg-[#00a3e0] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow">
-            S
-          </div>
-          <div className="leading-tight">
-            <div className="font-bold text-lg tracking-tight">Sky Chemicals</div>
-            <div className="text-[10px] text-blue-300 -mt-0.5 hidden sm:block">UK Ltd</div>
-          </div>
+        <Link href="/" className="flex items-center group">
+          <Image
+            src="/logo.svg"
+            alt="Sky Chemicals UK Ltd"
+            width={120}
+            height={70}
+            className="h-10 w-auto brightness-0 invert"
+            priority
+          />
         </Link>
 
         {/* Desktop nav */}

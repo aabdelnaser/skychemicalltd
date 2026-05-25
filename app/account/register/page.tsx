@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/authContext';
 import { Eye, EyeOff, UserPlus } from 'lucide-react';
@@ -37,7 +38,9 @@ export default function RegisterPage() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 bg-gray-50">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-[#003d7a] rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3">S</div>
+          <Link href="/" className="inline-block mb-4">
+            <Image src="/logo.svg" alt="Sky Chemicals UK Ltd" width={180} height={100} className="h-16 w-auto mx-auto" />
+          </Link>
           <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
           <p className="text-gray-500 mt-1 text-sm">Join thousands of UK businesses</p>
         </div>

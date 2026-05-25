@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
@@ -7,10 +8,15 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Brand */}
         <div>
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-[#00a3e0] rounded-lg flex items-center justify-center text-white font-bold">S</div>
-            <span className="font-bold text-white text-lg">Sky Chemicals UK Ltd</span>
-          </div>
+          <Link href="/" className="inline-block mb-4">
+            <Image
+              src="/logo.svg"
+              alt="Sky Chemicals UK Ltd"
+              width={160}
+              height={90}
+              className="h-14 w-auto brightness-0 invert"
+            />
+          </Link>
           <p className="text-sm leading-relaxed text-blue-300">
             Professional cleaning and disinfection products for healthcare, hospitality, animal care and more. Trusted by businesses across the UK.
           </p>
