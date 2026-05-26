@@ -1,18 +1,24 @@
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
+import { OAuth2Client } from 'google-auth-library';
 import { NextResponse } from 'next/server';
 
 const propertyId = process.env.GA4_PROPERTY_ID;
-const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-const privateKey = process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n');
+const clientId = process.env.GOOGLE_CLIENT_ID;
+const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
 
 export async function GET() {
-  if (!propertyId || !clientEmail || !privateKey) {
+  if (!propertyId || !clientId || !clientSecret || !refreshToken) {
     return NextResponse.json({ error: 'GA4 credentials not configured' }, { status: 503 });
   }
 
   try {
+    // Use OAuth2 with a refresh token — no service account permissions needed
+    const oauth2Client = new OAuth2Client(clientId, clientSecret);
+    oauth2Client.setCredentials({ refresh_token: refreshToken });
+
     const analyticsClient = new BetaAnalyticsDataClient({
-      credentials: { client_email: clientEmail, private_key: privateKey },
+      authClient: oauth2Client as never,
     });
 
     const property = `properties/${propertyId}`;
@@ -52,13 +58,7 @@ export async function GET() {
           filter: {
             fieldName: 'eventName',
             inListFilter: {
-              values: [
-                'add_to_cart',
-                'begin_checkout',
-                'purchase',
-                'generate_lead',
-                'view_item',
-              ],
+              values: ['add_to_cart', 'begin_checkout', 'purchase', 'generate_lead', 'view_item'],
             },
           },
         },
