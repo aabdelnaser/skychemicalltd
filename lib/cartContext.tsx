@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CartItem, Product } from './types';
+import { trackAddToCart, trackRemoveFromCart, trackViewCart } from './analytics';
 
 interface CartContextType {
   items: CartItem[];
@@ -34,6 +35,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items]);
 
   const addItem = (product: Product, quantity = 1) => {
+    // Fire GA4 add_to_cart
+    trackAddToCart(
+      { id: product.id, name: product.name, category: product.category, price: product.price, sku: product.sku },
+      quantity
+    );
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
@@ -47,7 +53,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeItem = (productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
+    setItems((prev) => {
+      const item = prev.find((i) => i.product.id === productId);
+      if (item) {
+        // Fire GA4 remove_from_cart
+        trackRemoveFromCart(
+          { id: item.product.id, name: item.product.name, category: item.product.category, price: item.product.price, sku: item.product.sku },
+          item.quantity
+        );
+      }
+      return prev.filter((i) => i.product.id !== productId);
+    });
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -62,6 +78,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
 
+  const openCart = () => {
+    // Fire GA4 view_cart
+    trackViewCart(
+      items.map((i) => ({ product: { sku: i.product.sku, name: i.product.name, category: i.product.category, price: i.product.price }, quantity: i.quantity })),
+      subtotal
+    );
+    setIsOpen(true);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -73,7 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         totalItems,
         subtotal,
         isOpen,
-        openCart: () => setIsOpen(true),
+        openCart,
         closeCart: () => setIsOpen(false),
       }}
     >

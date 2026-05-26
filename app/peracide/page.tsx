@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { peracideProducts, peracideDocuments, type PeracideProduct } from '@/lib/peracideProducts';
 import { FileDown, ChevronRight, FlaskConical, Award, Microscope, ShieldCheck } from 'lucide-react';
+import { trackEnquiry } from '@/lib/analytics';
 
 const DOC_TYPE_STYLES: Record<string, string> = {
   SDS:           'bg-red-50 text-red-700 border-red-200',
@@ -229,6 +230,7 @@ function ProductCard({ product, featured }: { product: PeracideProduct; featured
         <div className="flex gap-2 mt-auto">
           <Link
             href="/contact"
+            onClick={() => trackEnquiry(product.name, 'peracide_page')}
             className="flex-1 text-center text-xs font-semibold bg-[#003d7a] text-white px-3 py-2 rounded-lg hover:bg-[#00a3e0] transition-colors"
           >
             Enquire

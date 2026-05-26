@@ -6,12 +6,19 @@ import { getProductsByCategory } from '@/lib/products';
 import { useCart } from '@/lib/cartContext';
 import ProductCard from '@/components/ProductCard';
 import { ShoppingCart, Star, CheckCircle, ArrowLeft, Package, Truck, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { trackViewItem } from '@/lib/analytics';
 
 export default function ProductDetail({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+
+  // GA4 view_item
+  useEffect(() => {
+    trackViewItem({ id: product.id, name: product.name, category: product.category, price: product.price, sku: product.sku });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
 
   const related = getProductsByCategory(product.categorySlug)
     .filter((p) => p.id !== product.id)

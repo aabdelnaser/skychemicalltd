@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/lib/cartContext';
@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/authContext';
 import { useOrders } from '@/lib/ordersContext';
 import { ShippingAddress } from '@/lib/types';
 import { ArrowLeft, ShieldCheck, Truck } from 'lucide-react';
+import { trackBeginCheckout, trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from '@/lib/analytics';
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useCart();
@@ -36,6 +37,17 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Partial<typeof form>>({});
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState<'details' | 'payment'>('details');
+
+  // GA4 begin_checkout — fire once when page loads with items
+  useEffect(() => {
+    if (items.length > 0) {
+      trackBeginCheckout(
+        items.map((i) => ({ product: { sku: i.product.sku, name: i.product.name, category: i.product.category, price: i.product.price }, quantity: i.quantity })),
+        subtotal
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (items.length === 0) {
     return (
@@ -72,19 +84,40 @@ export default function CheckoutPage() {
   };
 
   const handleNextStep = () => {
-    if (validate()) setStep('payment');
+    if (validate()) {
+      // GA4 add_shipping_info
+      trackAddShippingInfo(
+        items.map((i) => ({ product: { sku: i.product.sku, name: i.product.name, category: i.product.category, price: i.product.price }, quantity: i.quantity })),
+        subtotal,
+        shipping === 0 ? 'Free Delivery' : 'Standard Delivery'
+      );
+      setStep('payment');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validatePayment()) return;
     setSubmitting(true);
+    // GA4 add_payment_info
+    trackAddPaymentInfo(
+      items.map((i) => ({ product: { sku: i.product.sku, name: i.product.name, category: i.product.category, price: i.product.price }, quantity: i.quantity })),
+      total
+    );
     await new Promise((r) => setTimeout(r, 1200)); // simulate payment
     const order = placeOrder(
       user?.id || 'guest',
       items,
       { fullName: form.fullName, company: form.company, address1: form.address1, address2: form.address2, city: form.city, county: form.county, postcode: form.postcode, phone: form.phone },
       shipping
+    );
+    // GA4 purchase
+    trackPurchase(
+      order.id,
+      items.map((i) => ({ product: { sku: i.product.sku, name: i.product.name, category: i.product.category, price: i.product.price }, quantity: i.quantity })),
+      subtotal,
+      shipping,
+      total
     );
     clearCart();
     router.push(`/order-confirmation?orderId=${order.id}`);

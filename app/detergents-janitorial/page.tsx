@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { djProducts, DJ_CATEGORIES, type DJCategory } from '@/lib/djProducts';
 import { Search, ChevronRight } from 'lucide-react';
+import { trackEnquiry } from '@/lib/analytics';
 
 const BORDER_MAP: Record<DJCategory, string> = {
   'disinfectants-sanitisers': 'border-l-blue-700',
@@ -145,6 +146,7 @@ function DJContent() {
                     </span>
                     <Link
                       href="/contact"
+                      onClick={() => trackEnquiry(p.name, 'dj_page')}
                       className="text-xs font-semibold text-[#003d7a] hover:text-[#00a3e0] transition-colors flex items-center gap-0.5"
                     >
                       Enquire <ChevronRight className="w-3 h-3" />
