@@ -10,7 +10,7 @@ import {
   Users, Eye, MousePointerClick, ShoppingCart, CreditCard,
   TrendingUp, BarChart2, Laptop, Smartphone, Tablet,
   RefreshCw, ExternalLink, AlertCircle, DollarSign,
-  Package, ArrowRight,
+  Package, ArrowRight, Search,
 } from 'lucide-react';
 
 interface AnalyticsData {
@@ -339,10 +339,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Quick Nav ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { href: '/admin/products', icon: <Package className="w-7 h-7 text-[#003d7a]" />, title: 'Manage Products', desc: `${products.length} products in catalogue` },
+          { href: '/admin/products', icon: <Package     className="w-7 h-7 text-[#003d7a]" />, title: 'Manage Products', desc: `${products.length} products in catalogue` },
           { href: '/admin/orders',   icon: <ShoppingCart className="w-7 h-7 text-[#003d7a]" />, title: 'Manage Orders',   desc: `${orders.length} total orders` },
+          { href: '/admin/seo',      icon: <Search       className="w-7 h-7 text-[#003d7a]" />, title: 'SEO Dashboard',   desc: 'Search Console insights' },
         ].map((item) => (
           <Link
             key={item.href}
