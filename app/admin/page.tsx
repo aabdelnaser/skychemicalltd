@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/authContext';
 import { useOrders } from '@/lib/ordersContext';
 import { products } from '@/lib/products';
-import { Package, ShoppingBag, DollarSign, Users, TrendingUp, ArrowRight } from 'lucide-react';
+import { Package, ShoppingBag, DollarSign, Users, TrendingUp, ArrowRight, BarChart2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user, isLoading } = useAuth();
@@ -116,13 +116,14 @@ export default function AdminDashboard() {
         {[
           { href: '/admin/products', icon: '📦', title: 'Manage Products', desc: `${products.length} products in catalogue` },
           { href: '/admin/orders', icon: '📋', title: 'Manage Orders', desc: `${orders.length} total orders` },
+          { href: '/admin/analytics', icon: null, title: 'Analytics', desc: 'Live traffic, funnel & conversions', lucide: <BarChart2 className="w-8 h-8 text-[#003d7a]" /> },
         ].map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className="bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#00a3e0] hover:shadow-md transition-all group flex items-center gap-4"
           >
-            <div className="text-3xl">{item.icon}</div>
+            <div className="text-3xl">{item.lucide ?? item.icon}</div>
             <div>
               <div className="font-semibold text-gray-800 group-hover:text-[#003d7a]">{item.title}</div>
               <div className="text-sm text-gray-400">{item.desc}</div>
