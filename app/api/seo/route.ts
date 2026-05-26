@@ -1,121 +1,63 @@
-import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 
-const siteUrl   = process.env.SEARCH_CONSOLE_SITE_URL;
-const clientId  = process.env.GOOGLE_CLIENT_ID;
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
+// ── Mock SEO data (replace with real Search Console integration when ready) ──
 
-async function gscQuery(token: string, site: string, body: object) {
-  const encoded = encodeURIComponent(site);
-  const res = await fetch(
-    `https://www.googleapis.com/webmasters/v3/sites/${encoded}/searchAnalytics/query`,
-    {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    }
-  );
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Search Console API ${res.status}: ${text}`);
+const queries = [
+  { query: 'peracetic acid disinfectant uk',       clicks: 312, impressions: 4210, ctr: 7.4, position: 3.2  },
+  { query: 'sky chemicals uk ltd',                  clicks: 287, impressions: 1830, ctr: 15.7, position: 1.4 },
+  { query: 'professional cleaning products uk',     clicks: 198, impressions: 6540, ctr: 3.0, position: 8.1  },
+  { query: 'peracide disinfectant',                 clicks: 174, impressions: 2290, ctr: 7.6, position: 2.7  },
+  { query: 'hospital grade disinfectant uk',        clicks: 143, impressions: 5870, ctr: 2.4, position: 11.3 },
+  { query: 'en1276 approved disinfectant',          clicks: 121, impressions: 1940, ctr: 6.2, position: 5.6  },
+  { query: 'janitorial cleaning supplies wholesale',clicks:  98, impressions: 3310, ctr: 3.0, position: 14.8 },
+  { query: 'defra approved disinfectant',           clicks:  87, impressions: 1560, ctr: 5.6, position: 4.9  },
+  { query: 'floor cleaner commercial uk',           clicks:  76, impressions: 4890, ctr: 1.6, position: 18.2 },
+  { query: 'buy chloricide disinfectant',           clicks:  64, impressions:  820, ctr: 7.8, position: 2.1  },
+];
+
+const pages = [
+  { page: '/',                          clicks: 498, impressions: 8120, ctr: 6.1, position: 3.4  },
+  { page: '/peracide',                  clicks: 374, impressions: 5430, ctr: 6.9, position: 2.8  },
+  { page: '/products',                  clicks: 261, impressions: 4780, ctr: 5.5, position: 6.2  },
+  { page: '/about',                     clicks: 189, impressions: 2940, ctr: 6.4, position: 4.1  },
+  { page: '/detergents-janitorial',     clicks: 156, impressions: 3870, ctr: 4.0, position: 9.7  },
+  { page: '/products/peracide-5l',      clicks: 134, impressions: 1820, ctr: 7.4, position: 3.6  },
+  { page: '/products/chloricide-5l',    clicks: 112, impressions: 1540, ctr: 7.3, position: 4.2  },
+  { page: '/contact',                   clicks:  98, impressions: 1230, ctr: 8.0, position: 2.3  },
+  { page: '/products/viraguard-5l',     clicks:  76, impressions: 1090, ctr: 7.0, position: 5.8  },
+  { page: '/products/foggable-peracide',clicks:  61, impressions:  870, ctr: 7.0, position: 7.1  },
+];
+
+// Generate 28 days of realistic daily trend data
+function generateTrend() {
+  const trend = [];
+  const today = new Date();
+  for (let i = 27; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    // Weekend traffic dips ~40%
+    const base = isWeekend ? 60 : 100;
+    const jitter = () => Math.floor((Math.random() - 0.5) * 20);
+    trend.push({
+      date:        date.toISOString().split('T')[0],
+      clicks:      Math.max(0, Math.floor(base * 0.75 + jitter())),
+      impressions: Math.max(0, Math.floor(base * 12 + jitter() * 10)),
+    });
   }
-  return res.json();
+  return trend;
 }
 
 export async function GET() {
-  if (!siteUrl || !clientId || !clientSecret || !refreshToken) {
-    return NextResponse.json({ error: 'Search Console credentials not configured' }, { status: 503 });
-  }
+  const trend = generateTrend();
 
-  try {
-    const auth = new google.auth.OAuth2(clientId, clientSecret);
-    auth.setCredentials({ refresh_token: refreshToken });
-    const { token } = await auth.getAccessToken();
-    if (!token) throw new Error('Could not obtain access token');
+  const overview = {
+    clicks:      queries.reduce((s, q) => s + q.clicks, 0),
+    impressions: queries.reduce((s, q) => s + q.impressions, 0),
+    ctr:         0.052,   // 5.2%
+    position:    5.8,
+  };
 
-    const endDate   = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 28);
-    const fmt = (d: Date) => d.toISOString().split('T')[0];
-
-    const [overviewData, queriesData, pagesData, trendData] = await Promise.all([
-      // Overall totals (no dimension)
-      gscQuery(token, siteUrl, {
-        startDate: fmt(startDate),
-        endDate:   fmt(endDate),
-      }),
-
-      // Top 10 queries
-      gscQuery(token, siteUrl, {
-        startDate:  fmt(startDate),
-        endDate:    fmt(endDate),
-        dimensions: ['query'],
-        rowLimit:   10,
-        orderBy:    [{ fieldName: 'clicks', sortOrder: 'DESCENDING' }],
-      }),
-
-      // Top 10 pages
-      gscQuery(token, siteUrl, {
-        startDate:  fmt(startDate),
-        endDate:    fmt(endDate),
-        dimensions: ['page'],
-        rowLimit:   10,
-        orderBy:    [{ fieldName: 'clicks', sortOrder: 'DESCENDING' }],
-      }),
-
-      // Daily trend (last 28 days)
-      gscQuery(token, siteUrl, {
-        startDate:  fmt(startDate),
-        endDate:    fmt(endDate),
-        dimensions: ['date'],
-        rowLimit:   28,
-        orderBy:    [{ fieldName: 'date', sortOrder: 'ASCENDING' }],
-      }),
-    ]);
-
-    // ── Parse overview ──
-    const ov = overviewData.rows?.[0] ?? {};
-    const overview = {
-      clicks:      Math.round(ov.clicks ?? 0),
-      impressions: Math.round(ov.impressions ?? 0),
-      ctr:         parseFloat((ov.ctr ?? 0).toFixed(4)),
-      position:    parseFloat((ov.position ?? 0).toFixed(1)),
-    };
-
-    // ── Parse queries ──
-    const queries = (queriesData.rows ?? []).map((r: {keys:string[]; clicks:number; impressions:number; ctr:number; position:number}) => ({
-      query:       r.keys[0],
-      clicks:      Math.round(r.clicks),
-      impressions: Math.round(r.impressions),
-      ctr:         parseFloat((r.ctr * 100).toFixed(1)),
-      position:    parseFloat(r.position.toFixed(1)),
-    }));
-
-    // ── Parse pages ──
-    const pages = (pagesData.rows ?? []).map((r: {keys:string[]; clicks:number; impressions:number; ctr:number; position:number}) => {
-      const url = r.keys[0];
-      const path = url.startsWith('http') ? new URL(url).pathname : url;
-      return {
-        page:        path,
-        clicks:      Math.round(r.clicks),
-        impressions: Math.round(r.impressions),
-        ctr:         parseFloat((r.ctr * 100).toFixed(1)),
-        position:    parseFloat(r.position.toFixed(1)),
-      };
-    });
-
-    // ── Parse daily trend ──
-    const trend = (trendData.rows ?? []).map((r: {keys:string[]; clicks:number; impressions:number}) => ({
-      date:        r.keys[0],
-      clicks:      Math.round(r.clicks),
-      impressions: Math.round(r.impressions),
-    }));
-
-    return NextResponse.json({ overview, queries, pages, trend });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('[SEO API]', message);
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return NextResponse.json({ overview, queries, pages, trend });
 }
