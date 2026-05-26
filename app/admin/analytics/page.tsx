@@ -126,9 +126,11 @@ export default function AdminAnalyticsPage() {
             <p className="text-red-600 text-xs mt-1">{error}</p>
             <p className="text-red-500 text-xs mt-2">
               Make sure <code className="bg-red-100 px-1 rounded">GA4_PROPERTY_ID</code>,{' '}
-              <code className="bg-red-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_EMAIL</code> and{' '}
-              <code className="bg-red-100 px-1 rounded">GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY</code> are set in{' '}
-              <code className="bg-red-100 px-1 rounded">.env.local</code>.
+              <code className="bg-red-100 px-1 rounded">GOOGLE_CLIENT_ID</code>,{' '}
+              <code className="bg-red-100 px-1 rounded">GOOGLE_CLIENT_SECRET</code> and{' '}
+              <code className="bg-red-100 px-1 rounded">GOOGLE_REFRESH_TOKEN</code> are set in{' '}
+              <code className="bg-red-100 px-1 rounded">.env.local</code>.{' '}
+              Also ensure the <strong>Google Analytics Data API</strong> is enabled in Google Cloud Console.
             </p>
           </div>
         </div>
